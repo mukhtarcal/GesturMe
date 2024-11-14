@@ -1703,3 +1703,48 @@ input, select, textarea {
 		body.is-preload #footer {
 			opacity: 0;
 		}
+		/* Adjust the size and remove outline for Instagram icons */
+
+		/* Adjust Instagram icon position */
+		.instagram-icon {
+			width: 60px; /* Icon size */
+			height: 60px;
+			border-radius: 50%;
+			object-fit: cover;
+			transition: transform 0.3s ease;
+			margin-left: 5px; /* Shift the icon 3px to the left */
+		}
+
+		/* ... existing code ... */
+
+		/* Center the icon and label within each list item */
+		ul.icons li {
+			margin-right: 3rem; /* Increase spacing between icons */
+			text-align: center; /* Center icon and text */
+		}
+
+		/* Remove outline and hover effect for the icon */
+		ul.icons li a {
+			box-shadow: none;
+			display: inline-block;
+		}
+
+		/* Hover effect for scaling icons */
+		.instagram-icon:hover {
+			transform: scale(1.1);
+		}
+
+		/* Smaller and thinner "Instagram" label */
+		.icon-label {
+			display: block;
+			font-size: 0.5rem; /* Smaller font size */
+			color: #ffffff;
+			margin-top: 0.15rem;
+			font-family: "Source Sans Pro", sans-serif;
+			font-weight: 300; /* Thin weight */
+			text-transform: uppercase;
+			letter-spacing: 0.15rem;
+			text-align: center;
+		}
+
+
