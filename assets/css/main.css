@@ -63,11 +63,6 @@ blockquote, q {
 
 /* end of added by me */
 
-/* Background image for the intro page only */
-#intro .image:before {
-    background-image: url("../../images/droids.jpeg");
-}
-
 /* Remove background image for the about section */
 #about .image:before {
     background-image: none; /* Ensure no background image */
@@ -686,7 +681,6 @@ input, select, textarea {
 
 		.image:before {
 			pointer-events: none;
-			background-image: url("../../images/droids.jpeg");
 			background-color: rgba(19, 21, 25, 0.5);
 			border-radius: 4px;
 			background-size: contain; /* Or use 'cover' depending on your preference */
@@ -1319,8 +1313,8 @@ input, select, textarea {
 				display: block;
 				position: absolute;
 				top: calc(-3.5rem - 1px);
-				left: calc(50% - 1px);
-				width: 1px;
+				left: calc(50% - 1.5px);
+				width: 3px;
 				height: calc(3.5rem + 1px);
 				background: #ffffff;
 			}
@@ -1391,8 +1385,8 @@ input, select, textarea {
 		}
 
 			#header nav ul li {
-				padding-left: 0;
 				border-left: solid 3px #ffffff;
+				padding-left: 0;
 			}
 
 				#header nav ul li:first-child {
@@ -1425,8 +1419,8 @@ input, select, textarea {
 			display: block;
 			position: absolute;
 			top: 0;
-			left: calc(50% - 1px);
-			width: 1px;
+			left: calc(50% - 1.5px);
+			width: 3px;
 			height: 100%;
 			background: #ffffff;
 		}
@@ -1525,7 +1519,7 @@ input, select, textarea {
 
 					#header nav ul li {
 						border-left: 0;
-						border-top: solid 1px #ffffff;
+						border-top: solid 3px #ffffff;
 					}
 
 						#header nav ul li:first-child {
