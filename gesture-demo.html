@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interactive Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .camera-section {
+            width: 100%;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            aspect-ratio: 16/9;
+            margin-bottom: 20px;
+        }
+
+        video, canvas {
+            width: 100%;
+            height: 100%;
+            transform: scaleX(-1);
+            object-fit: cover;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .hold-counter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 100;
+        }
+
+        .media-controls {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .control-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        .control-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .playlist-section, .controls-section {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            margin: 0 0 15px 0;
+            color: #4785ff;
+        }
+
+        .song-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .song-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .song-item.active {
+            background: rgba(71, 133, 255, 0.2);
+            color: #4785ff;
+        }
+
+        .gesture-instruction {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .start-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #4785ff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            z-index: 100;
+        }
+
+        .start-button:hover {
+            background: #3b6fd4;
+        }
+
+        .now-playing {
+            font-size: 16px;
+            color: #4785ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="camera-section">
+            <video id="video" playsinline></video>
+            <canvas id="canvas"></canvas>
+            <div id="holdCounter" class="hold-counter"></div>
+            <button id="startButton" class="start-button">Start Demo</button>
+        </div>
+
+        <div class="media-controls">
+            <div class="now-playing" id="nowPlaying"></div>
+            <div>
+                <button class="control-button" onclick="previousSong()">⏮</button>
+                <button class="control-button" id="playPauseBtn" onclick="togglePlayback()">⏯</button>
+                <button class="control-button" onclick="nextSong()">⏭</button>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="playlist-section">
+                <h3 class="section-title">Playlist</h3>
+                <div id="playlist"></div>
+            </div>
+
+            <div class="controls-section">
+                <h3 class="section-title">Gesture Controls</h3>
+                <div class="gesture-instruction">
+                    ✋ Hold palm up for 2.5s to pause/play
+                </div>
+                <div class="gesture-instruction">
+                    ✌️ Swipe right with two fingers for next song
+                </div>
+                <div class="gesture-instruction">
+                    ✌️ Swipe left with two fingers for previous song
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const drawingUtils = window;
+        const songs = [
+            { id: 1, title: "2016 Freshman XXL", file: "assets/audios/2016 freshment xxl.mp3" },
+            { id: 2, title: "Cantina Band", file: "assets/audios/Cantina Band.mp3" },
+            { id: 3, title: "Never Fell For You", file: "assets/audios/FaZe Clan - Never Fell For You (Official Music Video).mp3" },
+            { id: 4, title: "RAPSTAR", file: "assets/audios/Polo G - RAPSTAR (Lyrics).mp3" },
+            { id: 5, title: "Who You Foolin", file: "assets/audios/Who You Foolin.mp3" }
+        ];
+
+        let currentSongIndex = 0;
+        let isPlaying = false;
+        let audio = new Audio();
+        let gestureStartX = null;
+        let lastGestureTime = 0;
+        let pauseGestureStartTime = null;
+        const DEBOUNCE_TIME = 1000;
+        const MOVEMENT_THRESHOLD = 0.1;
+        const PAUSE_GESTURE_DURATION = 2500;
+
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const holdCounter = document.getElementById('holdCounter');
+
+        function updatePlaylist() {
+            const playlist = document.getElementById('playlist');
+            playlist.innerHTML = songs.map((song, index) => `
+                <div class="song-item ${index === currentSongIndex ? 'active' : ''}" 
+                     onclick="changeSong(${index})">
+                    ${song.title}
+                </div>
+            `).join('');
+            
+            document.getElementById('nowPlaying').textContent = songs[currentSongIndex].title;
+            document.getElementById('playPauseBtn').textContent = isPlaying ? '⏸' : '⏯';
+        }
+
+        function playCurrentSong() {
+            audio.src = songs[currentSongIndex].file;
+            audio.play().catch(e => console.error('Audio playback failed:', e));
+            isPlaying = true;
+            updatePlaylist();
+        }
+
+        function changeSong(index) {
+            currentSongIndex = index;
+            playCurrentSong();
+        }
+
+        function nextSong() {
+            currentSongIndex = (currentSongIndex + 1) % songs.length;
+            playCurrentSong();
+        }
+
+        function previousSong() {
+            currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+            playCurrentSong();
+        }
+
+        function togglePlayback() {
+            if (isPlaying) {
+                audio.pause();
+                isPlaying = false;
+            } else {
+                audio.play().catch(e => console.error('Playback failed:', e));
+                isPlaying = true;
+            }
+            updatePlaylist();
+        }
+
+        audio.addEventListener('ended', nextSong);
+
+        function checkPauseGesture(landmarks) {
+            const palmLandmarks = [0, 1, 2, 5, 9, 13, 17];
+            const palmPoints = palmLandmarks.map(i => landmarks[i]);
+            const avgX = palmPoints.reduce((sum, p) => sum + p.x, 0) / palmPoints.length;
+            const spread = Math.max(...palmPoints.map(p => Math.abs(p.x - avgX)));
+            return spread < 0.1;
+        }
+
+        function checkSwipeGesture(landmarks) {
+            const indexTip = landmarks[8];
+            const middleTip = landmarks[12];
+            const indexBase = landmarks[5];
+            const middleBase = landmarks[9];
+            
+            const indexExtended = indexTip.y < indexBase.y;
+            const middleExtended = middleTip.y < middleBase.y;
+            const distance = Math.hypot(indexTip.x - middleTip.x, indexTip.y - middleTip.y);
+            
+            return indexExtended && middleExtended && distance < 0.08;
+        }
+
+        const hands = new Hands({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+            }
+        });
+
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+
+        const camera = new Camera(video, {
+            onFrame: async () => {
+                await hands.send({image: video});
+            },
+            width: 1280,
+            height: 720
+        });
+
+        hands.onResults((results) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
+                pauseGestureStartTime = null;
+                gestureStartX = null;
+                holdCounter.textContent = '';
+                return;
+            }
+
+            const landmarks = results.multiHandLandmarks[0];
+            
+            drawingUtils.drawConnectors(
+                ctx, landmarks, drawingUtils.HAND_CONNECTIONS,
+                {color: '#00FF00', lineWidth: 3}
+            );
+            drawingUtils.drawLandmarks(
+                ctx, landmarks,
+                {color: '#FF0000', fillColor: '#FF0000', lineWidth: 2, radius: 5}
+            );
+
+            landmarks.forEach((landmark, index) => {
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = '12px Arial';
+                ctx.fillText(index.toString(), 
+                    landmark.x * canvas.width + 10, 
+                    landmark.y * canvas.height + 10
+                );
+            });
+
+            const currentTime = Date.now();
+
+            if (checkPauseGesture(landmarks)) {
+                if (pauseGestureStartTime === null) {
+                    pauseGestureStartTime = currentTime;
+                } else {
+                    const heldTime = currentTime - pauseGestureStartTime;
+                    holdCounter.textContent = `Hold: ${(heldTime / 1000).toFixed(2)}s`;
+                    
+                    if (heldTime >= PAUSE_GESTURE_DURATION) {
+                        if (currentTime - lastGestureTime > DEBOUNCE_TIME) {
+                            togglePlayback();
+                            lastGestureTime = currentTime;
+                            pauseGestureStartTime = null;
+                            holdCounter.textContent = '';
+                        }
+                    }
+                }
+            } else {
+                pauseGestureStartTime = null;
+                holdCounter.textContent = '';
+            }
+
+            if (checkSwipeGesture(landmarks)) {
+                const indexTip = landmarks[8];
+                
+                if (gestureStartX === null) {
+                    gestureStartX = indexTip.x;
+                } else {
+                    const movement = indexTip.x - gestureStartX;
+                    
+                    if (Math.abs(movement) > MOVEMENT_THRESHOLD) {
+                        if (currentTime - lastGestureTime > DEBOUNCE_TIME) {
+                            if (movement > 0) {
+                                previousSong();
+                            } else {
+                                nextSong();
+                            }
+                            lastGestureTime = currentTime;
+                        }
+                        gestureStartX = null;
+                    }
+                }
+            } else {
+                gestureStartX = null;
+            }
+        });
+
+        document.getElementById('startButton').addEventListener('click', async () => {
+            try {
+                await camera.start();
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                updatePlaylist();
+                playCurrentSong();
+                document.getElementById('startButton').style.display = 'none';
+            } catch (error) {
+                console.error('Error starting camera:', error);
+                holdCounter.textContent = 'Camera error: ' + error.message;
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            if (video.videoWidth) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+            }
+        });
+    </script>
+</body>
+</html>
