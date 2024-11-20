@@ -1741,4 +1741,59 @@ input, select, textarea {
 			text-align: center;
 		}
 
+		#header .logo a {
+			border-bottom: none;
+		}
 
+		/* Style for the "Try it out!" container */
+.try-it-out {
+    position: relative; /* Positioned relative to the page */
+    text-align: center;
+    margin-bottom: -30px; /* Adjust to overlap header slightly */
+    z-index: 5;
+}
+
+/* Text styles for "Try it out!" */
+.try-it-out p {
+    font-size: 1.7rem; /* Larger font for better visibility */
+    font-weight: bold;
+    color: #ffffff;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.2rem; /* Consistent letter spacing */
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.6); /* Glow effect */
+}
+
+/* Style for the click instruction */
+.try-it-out .click-instruction {
+    font-size: 0.85rem; /* Half the size of the "Try it out!" font */
+    font-weight: normal;
+    color: #ffffff;
+    margin: 5px 0; /* Add slight spacing below "Try it out!" */
+    text-transform: none; /* Keep normal capitalization */
+    letter-spacing: 0.1rem; /* Slightly less letter spacing */
+}
+
+/* Style for the downward arrow */
+.try-it-out .arrow {
+    display: block;
+    font-size: 3rem; /* Larger size for the arrow */
+    line-height: 1; /* Ensures the arrow aligns tightly with the text */
+    margin-top: -10px; /* Keeps the arrow close to the text */
+    margin-bottom: 30px; /* Adds more space below the arrow */
+    color: #ffffff;
+    animation: bounce 1s infinite; /* Bounce animation for the arrow */
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.6); /* Glow effect to match text */
+    transform: scale(1, 1.5); /* Make the arrow longer */
+}
+
+/* Optional: Bounce animation */
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0) scale(1, 1.5); /* Retain the longer arrow in animation */
+    }
+    50% {
+        transform: translateY(5px) scale(1, 1.5); /* Retain spacing during animation */
+    }
+}
+		
