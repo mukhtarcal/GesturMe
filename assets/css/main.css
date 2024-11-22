@@ -1333,6 +1333,9 @@ input, select, textarea {
 			line-height: 5.5rem;
 			border: solid 3px #ffffff;
 			border-radius: 100%;
+			animation: logoPulsate 2s infinite; /* Added pulsating animation */
+			box-shadow: 0 0 15px rgba(255, 255, 255, 0.5), /* Inner glow */
+						0 0 30px rgba(255, 255, 255, 0.3); /* Outer glow */
 		}
 
 			#header .logo .icon:before {
@@ -1476,6 +1479,7 @@ input, select, textarea {
 				#header > *:before {
 					top: calc(-2rem - 1px);
 					height: calc(2rem + 1px);
+
 				}
 
 			#header .logo {
@@ -1749,7 +1753,7 @@ input, select, textarea {
 .try-it-out {
     position: relative; /* Positioned relative to the page */
     text-align: center;
-    margin-bottom: -30px; /* Adjust to overlap header slightly */
+    margin-bottom: -40px; /* Increased negative margin to move everything up */
     z-index: 5;
 }
 
@@ -1779,8 +1783,8 @@ input, select, textarea {
     display: block;
     font-size: 3rem; /* Larger size for the arrow */
     line-height: 1; /* Ensures the arrow aligns tightly with the text */
-    margin-top: -10px; /* Keeps the arrow close to the text */
-    margin-bottom: 30px; /* Adds more space below the arrow */
+    margin-top: -10px; /* Reduced from previous value */
+    margin-bottom: 10px; /* Reduced from 30px to 10px to decrease gap */
     color: #ffffff;
     animation: bounce 1s infinite; /* Bounce animation for the arrow */
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.6); /* Glow effect to match text */
@@ -1797,3 +1801,33 @@ input, select, textarea {
     }
 }
 		
+#header > .try-it-out:before {
+    display: none !important;
+    content: none !important;
+}
+
+/* Remove the connecting line for the logo */
+#header > .logo:before {
+    content: none !important;
+    display: none !important;
+}
+
+/* Also ensure the try-it-out section doesn't create a line */
+#header > .try-it-out:before {
+    content: none !important;
+    display: none !important;
+}
+
+/* Add new keyframes animation for the logo */
+@keyframes logoPulsate {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.5),
+                    0 0 30px rgba(255, 255, 255, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.7),
+                    0 0 40px rgba(255, 255, 255, 0.5);
+    }
+}
